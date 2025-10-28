@@ -1,38 +1,47 @@
-name: Build Flutter App (Android)
+name: Build Flutter Android APK
 
 on:
-  workflow_dispatch:  # 手动触发构建
+  workflow_dispatch:  # 可手动触发
   push:
     branches:
-      - main  # 当 main 分支有更新时自动触发
+      - main
 
 jobs:
-  build:
-    name: Build APK
+  build-android:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 检出源码
-      - name: Checkout source
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ 安装 Flutter 环境
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'  # 你也可以换成具体项目要求的版本
+          flutter-version: '3.24.0'
 
-      # 3️⃣ 拉取依赖
+      # 检查项目结构，进入 Flutter 项目根目录（关键！）
+      - name: Detect project root
+        id: find_root
+        run: |
+          if [ -f "pubspec.yaml" ]; then
+            echo "root=." >> $GITHUB_OUTPUT
+          elif [ -f "simple_live/pubspec.yaml" ]; then
+            echo "root=simple_live" >> $GITHUB_OUTPUT
+          else
+            echo "❌ No pubspec.yaml found!"
+            exit 1
+          fi
+
       - name: Install dependencies
+        working-directory: ${{ steps.find_root.outputs.root }}
         run: flutter pub get
 
-      # 4️⃣ 构建 Release 版 APK
-      - name: Build release APK
+      - name: Build Android release APK
+        working-directory: ${{ steps.find_root.outputs.root }}
         run: flutter build apk --release
 
-      # 5️⃣ 上传构建产物
-      - name: Upload artifact (APK)
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: simple_live_apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: ${{ steps.find_root.outputs.root }}/build/app/outputs/flutter-apk/app-release.apk
