@@ -25,7 +25,7 @@ jobs:
         run: |
           if [ -f "pubspec.yaml" ]; then
             echo "root=." >> $GITHUB_OUTPUT
-          elif [ -f "simple_live/pubspec.yaml" ]; then
+          elif [ -f "simple_live_app/pubspec.yaml" ]; then
             echo "root=simple_live" >> $GITHUB_OUTPUT
           else
             echo "❌ No pubspec.yaml found!"
